@@ -4,7 +4,21 @@
  * the function should return a promise just like before
  */
 
+const Sleepy = (milliseconds) => {
+    return new Promise(resolve => {
+        setTimeout(() => {
+            resolve();
+        }, milliseconds);
+    });
+}
+
+const main = async (milliseconds) => {
+    const val = await Sleepy(milliseconds);
+    return val;
+}
+
 function sleep(milliseconds) {
+    return main(milliseconds);
 }
 
 module.exports = sleep;

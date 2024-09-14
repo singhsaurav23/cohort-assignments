@@ -11,7 +11,28 @@
 */
 
 class Todo {
-
+    #arr = new Array()
+    add(todo) {
+        this.#arr.push(todo);
+    }
+    remove(ind) {
+        if (ind >= this.#arr.length || ind < 0) return null;
+        this.#arr.splice(ind, 1);
+    }
+    update(ind, todo) {
+        if (ind >= this.#arr.length || ind < 0) return null;
+        this.#arr[ind] = todo;
+    }
+    getAll() {
+        return this.#arr;
+    }
+    get(ind) {
+        if (ind >= this.#arr.length || ind < 0) return null;
+        return this.#arr[ind];
+    }
+    clear() {
+        this.#arr = [];
+    }
 }
 
 module.exports = Todo;

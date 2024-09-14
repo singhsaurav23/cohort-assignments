@@ -39,11 +39,62 @@
 
   Testing the server - run `npm run test-todoServer` command in terminal
  */
-  const express = require('express');
-  const bodyParser = require('body-parser');
-  
-  const app = express();
-  
-  app.use(bodyParser.json());
-  
-  module.exports = app;
+const express = require('express');
+const bodyParser = require('body-parser');
+
+const app = express();
+
+app.use(bodyParser.json());
+
+const todo_list = [];
+
+app.get('/todos', (req, res) => {
+    res.status(200).json(todo_list);
+});
+
+app.get('/todos/:id', (req, res) => {
+    let id = req.params.id;
+    let item = todo_list.find(item => item.id === parseInt(id));
+    if (!item) res.status(404).send('Not Found');
+    else res.status(200).json(item);
+});
+
+app.post('/todos', (req, res) => {
+    const newTodo = {
+        id: Math.floor(Math.random() * 1000000),
+        title: req.body.title,
+        description: req.body.description
+    };
+
+    todo_list.push(newTodo);
+    res.status(201).json(newTodo);
+});
+
+app.put('/todos/:id', (req, res) => {
+    const todoIndex = todo_list.findIndex(t => t.id === parseInt(req.params.id));
+    if (todoIndex === -1) {
+        res.status(404).send();
+    } else {
+        todo_list[todoIndex].title = req.body.title;
+        todo_list[todoIndex].description = req.body.description;
+        res.status(200).json(todo_list[todoIndex]);
+    }
+});
+
+app.delete('/todos/:id', (req, res) => {
+    const todoIndex = todo_list.findIndex(t => t.id === parseInt(req.params.id));
+    if (todoIndex === -1) {
+        res.status(404).send('Not Found');
+    } else {
+        todo_list.splice(todoIndex, 1);
+        res.status(200).send();
+    }
+});
+
+app.all('*', (req, res) => {
+    res.status(404).send('Route not found');
+});
+
+app.listen(3000, () => console.log('Server listening at 3000'));
+
+module.exports = app;

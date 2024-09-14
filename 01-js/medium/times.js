@@ -9,5 +9,12 @@ There is no automated test for this one, this is more for you to understand time
 */
 
 function calculateTime(n) {
-    return 0.01;
+    let start = Date.now();
+    let s = 0;
+    for (let i = 1; i <= n; i++) s += i;   
+    let timeTaken = Date.now() - start;
+    return timeTaken;
 }
+
+let n = 1000000000;
+console.log("Time = " + calculateTime(n)+" ms")
