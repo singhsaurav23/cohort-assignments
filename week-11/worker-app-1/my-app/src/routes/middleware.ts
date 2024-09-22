@@ -2,13 +2,8 @@ import type { Context, MiddlewareHandler } from 'hono';
 import { verify } from 'hono/jwt';
 
 const authMiddleware: MiddlewareHandler = async (c: Context, next: () => Promise<void>) => {
-    const authheader = c.req.header('Authorization');
-
-    if (!authheader || !authheader.startsWith('Bearer ')) {
-        return c.text('You don\'t have access');
-    }
-
-    const token = authheader.split(' ')[1];
+    const header = c.req.header("authorization") || "";
+    const token = header.split(" ")[1]
 
     try {
         const decode = await verify(token, c.env.JWT_SECRET);

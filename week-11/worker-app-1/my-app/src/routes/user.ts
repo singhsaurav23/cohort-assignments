@@ -4,7 +4,8 @@ import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 import { sign } from 'hono/jwt'
 import { hashPassword } from './utils';
-
+import { signupInput } from '@srv_s29/medium-common'
+import { signinInput } from '@srv_s29/medium-common'
 
 const router = new Hono<{
     Bindings: {
@@ -22,7 +23,8 @@ router.post('/signup', async (c: Context) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
-
+    const { success } = signupInput.safeParse(body);
+    if (!success) { c.status(411); return c.json({ message: 'Invalid input' }) }
   const user = await prisma.user.findUnique({
         where: {
             email: body.email,
@@ -35,22 +37,30 @@ router.post('/signup', async (c: Context) => {
         return c.json({ error: "user already exist" });
     }
 
-    const hashedPassword = await hashPassword(body.password);
+    try {
 
-    const userObj = await prisma.user.create({
-        data: {
-            username: body.username,
-            email: body.email,
-            password: hashedPassword,
+        const hashedPassword = await hashPassword(body.password);
 
-        }
-    });
+        const userObj = await prisma.user.create({
+            data: {
+                username: body.username,
+                email: body.email,
+                password: hashedPassword,
 
-    const token = await sign({ id: userObj.id }, c.env.JWT_SECRET);
+            }
+        });
 
-    return c.json({
-        jwt: token
-    })
+        const token = await sign({ id: userObj.id }, c.env.JWT_SECRET);
+
+        return c.json({
+            jwt: token
+        })
+
+    } catch (error) {
+        return c.json({
+            message: "Internal Server Error"
+        })
+    }
 })
 
 router.post('/signin', async (c: Context) => {
@@ -59,6 +69,9 @@ router.post('/signin', async (c: Context) => {
     }).$extends(withAccelerate());
 
     const body = await c.req.json();
+
+    const { success } = signinInput.safeParse(body);
+    if (!success) { c.status(411); return c.json({ message: 'Invalid input' }) }
 
     const user = await prisma.user.findUnique({
         where: {
@@ -69,6 +82,13 @@ router.post('/signin', async (c: Context) => {
     if (!user) {
         c.status(403);
         return c.json({ error: "User not found" });
+    }
+
+    const hashedPassword = await hashPassword(body.password);
+
+    if (user.password != hashedPassword) {
+        c.status(403);
+        return c.json({ error: "Incorrect Password" });
     }
 
     const token = await sign({ id: user.id }, c.env.JWT_SECRET);
